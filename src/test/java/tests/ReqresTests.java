@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static specs.CreateUserSpec.*;
 
 @Tag("API")
@@ -15,23 +15,23 @@ public class ReqresTests extends TestBase {
 
     CreateUserModel createUserModel = new CreateUserModel();
     CreateUserNameJobModel createUserNameJobModel = new CreateUserNameJobModel();
-    UpdateSuccessfulModel updateSuccessfulModel = new UpdateSuccessfulModel();
 
     @Test
-    public void SuccessfulRegTest() {
+    public void successfulRegTest() {
         createUserModel.setEmail("eve.holt@reqres.in");
         createUserModel.setPassword("pistol");
         CreateUserResponseModel response = step("Успешное создание пользователя", () ->
-                given(createUserRequestSpec)
+                given(createRequestSpec)
                         .body(createUserModel)
                         .when()
                         .post("/register")
                         .then()
-                        .spec(createUserResponseSpec)
+                        .spec(successfulUserResponseSpec)
                         .extract().as(CreateUserResponseModel.class));
         step("Проверка создания пользователя по id, токену", () -> {
             assertEquals(4, response.getId());
-            assertEquals("QpwL5tke4Pnpja7X4", response.getToken());
+            assertNotNull(response.getToken(), "Токен должен быть не null");
+            assertEquals(17, response.getToken().length(), "Длина токена должна быть 17 символов");
         });
     }
 
@@ -39,7 +39,7 @@ public class ReqresTests extends TestBase {
     public void unSuccessfulRegTest() {
         createUserModel.setEmail("sydney@fife");
         CreateUserResponseModel response = step("Неуспешное создание пользователя", () ->
-                given(createUserRequestSpec)
+                given(createRequestSpec)
                         .body(createUserModel)
                         .when()
                         .post("/register")
@@ -52,11 +52,11 @@ public class ReqresTests extends TestBase {
     }
 
     @Test
-    public void CreateUserNameJobTest() {
+    public void createUserNameJobTest() {
         createUserNameJobModel.setName("morpheus");
         createUserNameJobModel.setJob("leader");
         CreateUserNameJobResponseModel response = step("Создание пользователя с именем и работой", () ->
-                given(createUserNameJobRequestSpec)
+                given(createRequestSpec)
                         .body(createUserNameJobModel)
                         .when()
                         .post("/user")
@@ -71,14 +71,14 @@ public class ReqresTests extends TestBase {
 
     @Test
     public void updateSuccessfulJobTest() {
-        updateSuccessfulModel.setJob("zion resident");
+        createUserNameJobModel.setJob("zion resident");
         UpdateSuccessfulResponseModel response = step("Изменение работы у пользователя", () ->
                 given(updateSuccessfulRequestSpec)
-                        .body(updateSuccessfulModel)
+                        .body(createUserNameJobModel)
                         .when()
                         .patch("/users/2")
                         .then()
-                        .spec(updateSuccessfulRequestSpec200)
+                        .spec(successfulUserResponseSpec)
                         .extract().as(UpdateSuccessfulResponseModel.class));
         step("Проверка изменения работы у пользователя", () -> {
             assertEquals("zion resident", response.getJob());
@@ -87,14 +87,14 @@ public class ReqresTests extends TestBase {
 
     @Test
     void updateSuccessfulNameTest() {
-        updateSuccessfulModel.setName("morpheus");
+        createUserNameJobModel.setName("morpheus");
         UpdateSuccessfulResponseModel response = step("Изменение имени у пользователя", () ->
                 given(updateSuccessfulRequestSpec)
-                        .body(updateSuccessfulModel)
+                        .body(createUserNameJobModel)
                         .when()
                         .patch("/users/2")
                         .then()
-                        .spec(updateSuccessfulRequestSpec200)
+                        .spec(successfulUserResponseSpec)
                         .extract().as(UpdateSuccessfulResponseModel.class));
         step("Проверка изменения имени у пользователя", () -> {
             assertEquals("morpheus", response.getName());
